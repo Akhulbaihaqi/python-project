@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waktu Sholat</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --deep: #0A1628;
+    --navy: #0F2447;
+    --cream: #F5EDD8;
+    --muted: rgba(245,237,216,0.45);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--cream);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .stars {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 50% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 25%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 5%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 35% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 55%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 75%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 15% 80%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 90%, rgba(255,255,255,0.4) 0%, transparent 100%);
+  }
+
+  .bg-deco {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 0;
+    height: 200px;
+    background: linear-gradient(to top, rgba(15,36,71,0.95) 40%, transparent 100%);
+  }
+
+  .mosque-svg {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    z-index: 0; opacity: 0.1; width: 600px;
+  }
+
+  .moon {
+    position: fixed; top: 40px; right: 60px; z-index: 1;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle at 35% 40%, var(--gold-light) 0%, var(--gold) 60%, transparent 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 30px rgba(201,168,76,0.4), 0 0 60px rgba(201,168,76,0.1);
+    animation: moonGlow 4s ease-in-out infinite alternate;
+  }
+  .moon::after {
+    content: '';
+    position: absolute;
+    top: 5px; left: 12px;
+    width: 45px; height: 45px;
+    background: var(--deep);
+    border-radius: 50%;
+  }
+
+  @keyframes moonGlow {
+    from { box-shadow: 0 0 30px rgba(201,168,76,0.4), 0 0 60px rgba(201,168,76,0.1); }
+    to   { box-shadow: 0 0 50px rgba(201,168,76,0.6), 0 0 100px rgba(201,168,76,0.2); }
+  }
+
+  .container {
+    position: relative; z-index: 2;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 36px 20px 80px;
+  }
+
+  .header { text-align: center; margin-bottom: 28px; }
+  .arabic-title {
+    font-family: 'Amiri', serif;
+    font-size: 2rem;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 4px;
+    text-shadow: 0 0 20px rgba(201,168,76,0.4);
+  }
+  .title {
+    font-size: 0.8rem;
+    font-weight: 300;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* FORM PANEL */
+  .form-panel {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.18);
+    border-radius: 18px;
+    padding: 20px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(12px);
+  }
+
+  .form-panel-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+
+  .form-row {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .form-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .input-group label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .input-group input,
+  .input-group select {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--cream);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    width: 100%;
+  }
+  .input-group input:focus,
+  .input-group select:focus {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.07);
+  }
+  .input-group input::placeholder { color: rgba(245,237,216,0.25); }
+  .input-group select option { background: #0F2447; color: var(--cream); }
+  .input-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) sepia(1) saturate(3) hue-rotate(5deg);
+    cursor: pointer;
+  }
+
+  /* Autocomplete */
+  .search-wrap { position: relative; }
+  .suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: #0F2447;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+  }
+  .suggestions.show { display: block; }
+  .suggestion-item {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.15s;
+  }
+  .suggestion-item:last-child { border-bottom: none; }
+  .suggestion-item:hover { background: rgba(201,168,76,0.12); }
+  .sug-city { font-weight: 500; }
+  .sug-region { font-size: 0.7rem; color: var(--muted); }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 12px; }
+  .btn {
+    flex: 1;
+    padding: 11px 16px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .btn-primary { background: var(--gold); color: var(--deep); }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-secondary { background: rgba(255,255,255,0.06); border: 1px solid rgba(201,168,76,0.2); color: var(--cream); }
+  .btn-secondary:hover { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.4); }
+
+  /* INFO BAR */
+  .info-bar {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    backdrop-filter: blur(10px);
+  }
+  .location-info { display: flex; align-items: center; gap: 8px; }
+  .loc-icon { color: var(--gold); font-size: 1rem; }
+  .loc-name { font-size: 0.85rem; font-weight: 500; }
+  .loc-coords { font-size: 0.65rem; color: var(--muted); font-family: monospace; }
+  .date-info { text-align: right; }
+  .date-hijri { font-family: 'Amiri', serif; color: var(--gold); font-size: 0.9rem; }
+  .date-masehi { font-size: 0.68rem; color: var(--muted); }
+
+  /* CLOCK */
+  .clock-block { text-align: center; margin-bottom: 24px; }
+  .clock {
+    font-size: 3.5rem; font-weight: 300;
+    letter-spacing: -2px; color: var(--cream); line-height: 1;
+  }
+  .clock span { color: var(--gold); animation: blink 1s step-start infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .next-prayer-label { font-size: 0.72rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
+  .next-prayer-name { font-size: 1.05rem; font-weight: 600; color: var(--gold-light); margin-top: 2px; }
+  .countdown { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  /* PRAYER CARDS */
+  .prayer-list { display: flex; flex-direction: column; gap: 9px; }
+  .prayer-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.1);
+    border-radius: 13px;
+    padding: 15px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.35s ease both;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .prayer-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: transparent;
+    transition: background 0.3s;
+  }
+  .prayer-card.active {
+    background: rgba(201,168,76,0.1);
+    border-color: rgba(201,168,76,0.4);
+    box-shadow: 0 0 30px rgba(201,168,76,0.08);
+  }
+  .prayer-card.active::before { background: var(--gold); }
+  .prayer-card.passed { opacity: 0.4; }
+
+  .prayer-left { display: flex; align-items: center; gap: 13px; }
+  .prayer-icon { font-size: 1.2rem; width: 30px; text-align: center; }
+  .prayer-name { font-size: 0.95rem; font-weight: 500; }
+  .prayer-name-ar { font-family: 'Amiri', serif; font-size: 0.78rem; color: var(--gold); opacity: 0.7; display: block; }
+  .prayer-time { font-size: 1.25rem; font-weight: 600; color: var(--cream); letter-spacing: 1px; }
+  .prayer-card.active .prayer-time { color: var(--gold-light); }
+
+  .active-badge {
+    position: absolute; top: 7px; right: 8px;
+    background: var(--gold); color: var(--deep);
+    font-size: 0.58rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 20px;
+    display: none;
+  }
+  .prayer-card.active .active-badge { display: block; }
+
+  .ornament { text-align: center; margin: 18px 0 10px; color: var(--gold); opacity: 0.3; font-size: 1.1rem; letter-spacing: 8px; }
+  .footer { text-align: center; margin-top: 28px; font-size: 0.68rem; color: rgba(245,237,216,0.2); letter-spacing: 0.1em; }
+
+  .loading { text-align: center; padding: 36px; color: var(--muted); font-size: 0.82rem; }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid rgba(201,168,76,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 10px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-msg {
+    text-align: center; padding: 20px;
+    color: #ff8a8a; font-size: 0.82rem;
+    background: rgba(255,100,100,0.07);
+    border: 1px solid rgba(255,100,100,0.2);
+    border-radius: 12px;
+  }
+
+  @media (max-width: 420px) {
+    .clock { font-size: 2.6rem; }
+    .form-row.cols-3 { grid-template-columns: 1fr 1fr; }
+    .mosque-svg { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+<div class="bg-deco"></div>
+<div class="moon"></div>
+
+<svg class="mosque-svg" viewBox="0 0 600 200" fill="white" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="300" cy="100" rx="80" ry="80"/>
+  <rect x="220" y="100" width="160" height="100"/>
+  <ellipse cx="160" cy="130" rx="50" ry="50"/>
+  <rect x="110" y="130" width="100" height="70"/>
+  <ellipse cx="440" cy="130" rx="50" ry="50"/>
+  <rect x="390" y="130" width="100" height="70"/>
+  <rect x="50" y="30" width="20" height="170"/>
+  <polygon points="50,30 60,5 70,30"/>
+  <rect x="530" y="30" width="20" height="170"/>
+  <polygon points="530,30 540,5 550,30"/>
+  <rect x="195" y="60" width="14" height="140"/>
+  <polygon points="195,60 202,40 209,60"/>
+  <rect x="391" y="60" width="14" height="140"/>
+  <polygon points="391,60 398,40 405,60"/>
+</svg>
+
+<div class="container">
+  <div class="header">
+    <span class="arabic-title">أوقات الصلاة</span>
+    <p class="title">Jadwal Waktu Sholat</p>
+  </div>
+
+  <!-- FORM PANEL -->
+  <div class="form-panel">
+    <div class="form-panel-title">⚙ Pengaturan Lokasi &amp; Waktu</div>
+
+    <div class="form-row">
+      <div class="input-group">
+        <label>🔍 Cari Nama Kota / Tempat</label>
+        <div class="search-wrap">
+          <input type="text" id="citySearch" placeholder="Ketik nama kota, mis: Surabaya, Mecca, Tokyo…" autocomplete="off">
+          <div class="suggestions" id="suggestions"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row cols-3">
+      <div class="input-group">
+        <label>🌐 Lintang (Lat)</label>
+        <input type="number" id="inputLat" placeholder="-7.2575" step="0.0001">
+      </div>
+      <div class="input-group">
+        <label>🌐 Bujur (Lon)</label>
+        <input type="number" id="inputLon" placeholder="112.7521" step="0.0001">
+      </div>
+      <div class="input-group">
+        <label>🕐 Zona Waktu</label>
+        <select id="inputTz">
+          <option value="Asia/Jakarta">WIB (+7)</option>
+          <option value="Asia/Makassar">WITA (+8)</option>
+          <option value="Asia/Jayapura">WIT (+9)</option>
+          <option value="Asia/Riyadh">Riyadh (+3)</option>
+          <option value="Asia/Kolkata">India (+5:30)</option>
+          <option value="Asia/Karachi">Pakistan (+5)</option>
+          <option value="Asia/Kuala_Lumpur">Malaysia (+8)</option>
+          <option value="Asia/Dubai">Dubai (+4)</option>
+          <option value="Europe/London">London (GMT)</option>
+          <option value="America/New_York">New York (-5)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row cols-2">
+      <div class="input-group">
+        <label>📅 Tanggal</label>
+        <input type="date" id="inputDate">
+      </div>
+      <div class="input-group">
+        <label>📐 Metode Hisab</label>
+        <select id="inputMethod">
+          <option value="11">Kemenag RI</option>
+          <option value="1">Univ. Karachi</option>
+          <option value="2">ISNA (Amerika)</option>
+          <option value="3">Muslim World League</option>
+          <option value="4">Ummul Qura (Makkah)</option>
+          <option value="5">Egypt</option>
+          <option value="15">Diyanet (Turki)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="useGPS()">📡 GPS Otomatis</button>
+      <button class="btn btn-primary" onclick="applySettings()">🕌 Tampilkan Jadwal</button>
+    </div>
+  </div>
+
+  <!-- Info Bar -->
+  <div class="info-bar">
+    <div class="location-info">
+      <span class="loc-icon">📍</span>
+      <div>
+        <div class="loc-name" id="cityName">–</div>
+        <div class="loc-coords" id="coordsDisplay">–</div>
+      </div>
+    </div>
+    <div class="date-info">
+      <div class="date-hijri" id="hijriDate">–</div>
+      <div class="date-masehi" id="masehiDate">–</div>
+    </div>
+  </div>
+
+  <!-- Clock -->
+  <div class="clock-block">
+    <div class="clock" id="clock">00<span>:</span>00<span>:</span>00</div>
+    <div class="next-prayer-label">Sholat berikutnya</div>
+    <div class="next-prayer-name" id="nextPrayerName">–</div>
+    <div class="countdown" id="countdown">–</div>
+  </div>
+
+  <div id="prayerContainer">
+    <div class="loading" style="opacity:0.4">Atur lokasi di atas lalu tekan "Tampilkan Jadwal"<br>atau klik GPS Otomatis</div>
+  </div>
+
+  <div class="ornament">✦ ✦ ✦</div>
+  <div class="footer">Data · Aladhan API &nbsp;|&nbsp; Geocoding · OpenStreetMap Nominatim</div>
+</div>
+
+<script>
+const PRAYERS = [
+  { key: 'Fajr',    name: 'Subuh',   nameAr: 'الفجر',  icon: '🌙' },
+  { key: 'Dhuhr',   name: 'Dzuhur',  nameAr: 'الظهر',  icon: '☀️' },
+  { key: 'Asr',     name: 'Ashar',   nameAr: 'العصر',  icon: '🌤️' },
+  { key: 'Maghrib', name: 'Maghrib', nameAr: 'المغرب', icon: '🌅' },
+  { key: 'Isha',    name: 'Isya',    nameAr: 'العشاء', icon: '🌃' },
+];
+
+let prayerTimes = {};
+const todayStr = new Date().toISOString().split('T')[0];
+
+// Set defaults
+document.getElementById('inputDate').value = todayStr;
+document.getElementById('inputDate').max = '2099-12-31';
+document.getElementById('inputLat').value = '';
+document.getElementById('inputLon').value = '';
+
+// ─── Clock ───
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').innerHTML = `${h}<span>:</span>${m}<span>:</span>${s}`;
+  updateActiveAndCountdown(now);
+}
+
+function toMinutes(timeStr) {
+  if (!timeStr || !timeStr.includes(':')) return -1;
+  const parts = timeStr.split(':');
+  return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+}
+
+function updateActiveAndCountdown(now) {
+  if (!Object.keys(prayerTimes).length) return;
+
+  const selectedDate = document.getElementById('inputDate').value;
+  const isToday = selectedDate === todayStr;
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const cards = document.querySelectorAll('.prayer-card');
+
+  let activePrayer = null;
+  let nextPrayer = null;
+  let nextMinutes = null;
+
+  PRAYERS.forEach(p => {
+    const min = toMinutes(prayerTimes[p.key]);
+    if (min >= 0 && nowMin >= min) activePrayer = p;
+  });
+
+  PRAYERS.forEach(p => {
+    const min = toMinutes(prayerTimes[p.key]);
+    if (min >= 0 && nowMin < min && !nextPrayer) {
+      nextPrayer = p; nextMinutes = min;
+    }
+  });
+
+  PRAYERS.forEach((p, i) => {
+    if (!cards[i]) return;
+    cards[i].classList.remove('active','passed');
+    if (!isToday) return;
+    const min = toMinutes(prayerTimes[p.key]);
+    if (activePrayer && p.key === activePrayer.key) cards[i].classList.add('active');
+    else if (min >= 0 && nowMin > min) cards[i].classList.add('passed');
+  });
+
+  if (!isToday) {
+    document.getElementById('nextPrayerName').textContent = '–';
+    document.getElementById('countdown').textContent = 'Tampilan tanggal lain';
+    return;
+  }
+
+  if (nextPrayer) {
+    const diff = nextMinutes - nowMin;
+    const h2 = Math.floor(diff / 60), m2 = diff % 60;
+    document.getElementById('nextPrayerName').textContent = nextPrayer.name;
+    document.getElementById('countdown').textContent = h2 > 0 ? `${h2} jam ${m2} menit lagi` : `${m2} menit lagi`;
+  } else {
+    document.getElementById('nextPrayerName').textContent = 'Subuh';
+    document.getElementById('countdown').textContent = 'Besok insyaAllah';
+  }
+}
+
+// ─── Hijri ───
+function toHijri(date) {
+  const months = ['Muharram','Safar','Rabi\'ul Awal','Rabi\'ul Akhir',
+    'Jumadil Awal','Jumadil Akhir','Rajab','Sya\'ban','Ramadhan','Syawal','Dzulqaidah','Dzulhijjah'];
+  const jd = Math.floor((date.getTime()/86400000) + 2440587.5);
+  const l = jd - 1948440 + 10632;
+  const n = Math.floor((l-1)/10631);
+  const l2 = l - 10631*n + 354;
+  const j = Math.floor((10985-l2)/5316)*Math.floor((50*l2)/17719) + Math.floor(l2/5670)*Math.floor((43*l2)/15238);
+  const l3 = l2 - Math.floor((30-j)/15)*Math.floor((17719*j)/50) - Math.floor(j/16)*Math.floor((15238*j)/43) + 29;
+  const month = Math.floor((24*l3)/709);
+  const day = l3 - Math.floor((709*month)/24);
+  const year = 30*n + j - 30;
+  return `${day} ${months[month-1]} ${year} H`;
+}
+
+function setDates(date) {
+  document.getElementById('hijriDate').textContent = toHijri(date);
+  document.getElementById('masehiDate').textContent = date.toLocaleDateString('id-ID', {
+    weekday:'long', day:'numeric', month:'long', year:'numeric'
+  });
+}
+
+// ─── Render ───
+function renderPrayers(times) {
+  const container = document.getElementById('prayerContainer');
+  container.innerHTML = '<div class="prayer-list"></div>';
+  const list = container.querySelector('.prayer-list');
+
+  PRAYERS.forEach((p, i) => {
+    const raw = times[p.key] || '–';
+    // Strip seconds
+    const time = raw.split(':').length === 3 ? raw.split(':').slice(0,2).join(':') : raw;
+
+    const card = document.createElement('div');
+    card.className = 'prayer-card';
+    card.style.animationDelay = `${i * 0.07}s`;
+    card.innerHTML = `
+      <div class="prayer-left">
+        <div class="prayer-icon">${p.icon}</div>
+        <div>
+          <div class="prayer-name">${p.name}</div>
+          <span class="prayer-name-ar">${p.nameAr}</span>
+        </div>
+      </div>
+      <div class="prayer-time">${time}</div>
+      <div class="active-badge">Sekarang</div>
+    `;
+    list.appendChild(card);
+  });
+  updateActiveAndCountdown(new Date());
+}
+
+// ─── Fetch ───
+async function fetchPrayerTimes(lat, lon, dateStr, method, tz) {
+  document.getElementById('prayerContainer').innerHTML =
+    `<div class="loading"><div class="spinner"></div>Memuat jadwal sholat…</div>`;
+
+  const [y, m, d] = dateStr.split('-');
+  const url = `https://api.aladhan.com/v1/timings/${d}-${m}-${y}?latitude=${lat}&longitude=${lon}&method=${method}&timezonestring=${encodeURIComponent(tz)}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.code === 200) {
+      prayerTimes = data.data.timings;
+      renderPrayers(prayerTimes);
+    } else {
+      throw new Error(data.status || 'API error');
+    }
+  } catch(e) {
+    document.getElementById('prayerContainer').innerHTML =
+      `<div class="error-msg">❌ Gagal memuat jadwal.<br>Periksa koneksi internet atau coba lagi.<br><small>${e.message}</small></div>`;
+  }
+}
+
+// ─── GPS ───
+function useGPS() {
+  if (!navigator.geolocation) { alert('Browser tidak mendukung GPS.'); return; }
+  document.getElementById('cityName').textContent = '📡 Mendeteksi GPS…';
+  document.getElementById('coordsDisplay').textContent = '';
+
+  navigator.geolocation.getCurrentPosition(
+    async pos => {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lon = pos.coords.longitude.toFixed(6);
+      document.getElementById('inputLat').value = lat;
+      document.getElementById('inputLon').value = lon;
+
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+        const data = await res.json();
+        const city = data.address.city || data.address.town || data.address.village || data.address.county || 'Lokasi';
+        const region = data.address.state || data.address.country || '';
+        document.getElementById('citySearch').value = city + (region ? `, ${region}` : '');
+        document.getElementById('cityName').textContent = city;
+        document.getElementById('coordsDisplay').textContent = `${lat}, ${lon}`;
+
+        // Auto timezone guess by longitude
+        const lonNum = parseFloat(lon);
+        if (lonNum >= 105 && lonNum < 120) document.getElementById('inputTz').value = 'Asia/Jakarta';
+        else if (lonNum >= 120 && lonNum < 135) document.getElementById('inputTz').value = 'Asia/Makassar';
+        else if (lonNum >= 135) document.getElementById('inputTz').value = 'Asia/Jayapura';
+      } catch {
+        document.getElementById('cityName').textContent = 'Lokasi GPS';
+        document.getElementById('coordsDisplay').textContent = `${lat}, ${lon}`;
+      }
+      applySettings();
+    },
+    err => {
+      document.getElementById('cityName').textContent = '–';
+      alert('Tidak dapat mengakses GPS. Aktifkan izin lokasi di browser Anda.');
+    }
+  );
+}
+
+// ─── Apply settings ───
+function applySettings() {
+  const lat = parseFloat(document.getElementById('inputLat').value);
+  const lon = parseFloat(document.getElementById('inputLon').value);
+  const dateStr = document.getElementById('inputDate').value;
+  const method = document.getElementById('inputMethod').value;
+  const tz = document.getElementById('inputTz').value;
+  const cityInput = document.getElementById('citySearch').value.trim();
+
+  if (isNaN(lat) || isNaN(lon)) {
+    alert('Masukkan koordinat lintang dan bujur yang valid,\natau gunakan tombol GPS Otomatis.');
+    return;
+  }
+  if (!dateStr) { alert('Pilih tanggal terlebih dahulu.'); return; }
+
+  const date = new Date(dateStr + 'T12:00:00');
+  setDates(date);
+
+  const cityDisplay = cityInput.split(',')[0] || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+  document.getElementById('cityName').textContent = cityDisplay;
+  document.getElementById('coordsDisplay').textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+
+  fetchPrayerTimes(lat, lon, dateStr, method, tz);
+}
+
+// ─── Autocomplete ───
+let searchTimeout;
+document.getElementById('citySearch').addEventListener('input', function() {
+  clearTimeout(searchTimeout);
+  const q = this.value.trim();
+  if (q.length < 3) { hideSuggestions(); return; }
+  searchTimeout = setTimeout(() => searchCity(q), 450);
+});
+
+document.getElementById('citySearch').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    hideSuggestions();
+  }
+});
+
+async function searchCity(q) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=6&addressdetails=1`);
+    const data = await res.json();
+    showSuggestions(data);
+  } catch { hideSuggestions(); }
+}
+
+function showSuggestions(results) {
+  const box = document.getElementById('suggestions');
+  if (!results.length) { hideSuggestions(); return; }
+  box.innerHTML = '';
+  results.forEach(r => {
+    const addr = r.address || {};
+    const city = addr.city || addr.town || addr.village || addr.county || r.display_name.split(',')[0];
+    const region = [addr.state, addr.country].filter(Boolean).join(', ');
+    const item = document.createElement('div');
+    item.className = 'suggestion-item';
+    item.innerHTML = `<div class="sug-city">${city}</div><div class="sug-region">${region}</div>`;
+    item.addEventListener('click', () => {
+      document.getElementById('citySearch').value = city + (region ? `, ${region}` : '');
+      document.getElementById('inputLat').value = parseFloat(r.lat).toFixed(6);
+      document.getElementById('inputLon').value = parseFloat(r.lon).toFixed(6);
+      // Timezone auto-guess
+      const lonNum = parseFloat(r.lon);
+      const tzSel = document.getElementById('inputTz');
+      if (lonNum >= 95 && lonNum < 108) tzSel.value = 'Asia/Jakarta';
+      else if (lonNum >= 108 && lonNum < 120) tzSel.value = 'Asia/Makassar';
+      else if (lonNum >= 120 && lonNum < 141) tzSel.value = 'Asia/Jayapura';
+      else if (lonNum >= 35 && lonNum < 60) tzSel.value = 'Asia/Riyadh';
+      hideSuggestions();
+    });
+    box.appendChild(item);
+  });
+  box.classList.add('show');
+}
+
+function hideSuggestions() {
+  document.getElementById('suggestions').classList.remove('show');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) hideSuggestions();
+});
+
+// ─── Init ───
+setDates(new Date());
+setInterval(updateClock, 1000);
+updateClock();
+useGPS();
+</script>
+</body>
+</html>
