@@ -736,6 +736,37 @@ setDates(new Date());
 setInterval(updateClock, 1000);
 updateClock();
 useGPS();
+   print("\n" + "="*45)
+        print(f"🕌 JADWAL SHALAT: {data_hasil['kota'].upper()}")
+        print(f"📅 Masehi  : {data_hasil['tanggal']}")
+        print("="*45)
+        for k, v in jadwal_bersih.items():
+            print(f" {k:<10} : {v}")
+        print("="*45)
+
+        # Menu Simpan File
+        print("\nOpsi Simpan File:")
+        print("1. Simpan ke .txt")
+        print("2. Simpan ke .pdf")
+        print("3. Simpan ke .docx (Word)")
+        print("4. Tidak perlu simpan")
+        pilihan = input("Pilih (1-4): ")
+        
+        if pilihan in ['1', '2', '3']:
+            simpan_ke_file(data_hasil, pilihan)
+
+    except Exception as e:
+        print(f"\n[X] Terjadi kesalahan: {e}\n")
+
+if __name__ == "__main__":
+    print("\n" + "*"*45)
+    print("   PROGRAM JADWAL SHALAT + EKSPOR FILE   ")
+    print("*"*45)
+    
+    while True:
+        input_kota = input("\nMasukkan nama kota (atau ketik 'keluar'): ").strip()
+        if input_kota.lower() == 'keluar': break
+        if input_kota: ambil_jadwal_shalat(input_kota)
 </script>
 </body>
 </html>
