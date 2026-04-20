@@ -736,37 +736,170 @@ setDates(new Date());
 setInterval(updateClock, 1000);
 updateClock();
 useGPS();
-   print("\n" + "="*45)
+
+ import os
+import sys
+
+# ==========================================
+# 1. PENGECEKAN LIBRARY (ANTI-ERROR)
+# ==========================================
+try:
+    import requests
+    from fpdf import FPDF
+    from docx import Document
+except ImportError as e:
+    print("\n" + "!"*50)
+    print(f"[X] ERROR: Library '{e.name}' belum terinstal!")
+    print("!"*50)
+    print("Cara perbaikan:")
+    print("1. Buka Terminal di VS Code (Ctrl + `)")
+    print("2. Ketik / Copy-Paste perintah di bawah ini lalu tekan Enter:")
+    print("   pip install requests fpdf python-docx")
+    print("3. Tunggu sampai selesai, lalu jalankan ulang kode ini.\n")
+    sys.exit() # Menghentikan program agar tidak muncul error panjang
+
+# ==========================================
+# 2. FUNGSI MENYIMPAN FILE
+# ==========================================
+def simpan_ke_file(data_shalat, format_file):
+    nama_kota = data_shalat['kota'].title()
+    # Mengganti spasi atau karakter ilegal untuk nama file
+    tanggal = data_shalat['tanggal'].replace('/', '-')
+    filename = f"Jadwal_{nama_kota}_{tanggal}"
+    
+    # Menyiapkan teks standar
+    isi_teks = (
+        f"JADWAL SHALAT: {nama_kota.upper()}\n"
+        f"Masehi  : {data_shalat['tanggal']}\n"
+        f"Hijriah : {data_shalat['hijriah']}\n"
+        + "-"*30 + "\n"
+    )
+    for k, v in data_shalat['jadwal'].items():
+        isi_teks += f"{k:<10} : {v}\n"
+
+    try:
+        # --- SIMPAN KE TXT ---
+        if format_file == '1':
+            nama_file_lengkap = f"{filename}.txt"
+            with open(nama_file_lengkap, "w", encoding="utf-8") as f:
+                f.write(isi_teks)
+            print(f"\n[V] SUKSES! File tersimpan sebagai: {nama_file_lengkap}")
+
+        # --- SIMPAN KE PDF ---
+        elif format_file == '2':
+            nama_file_lengkap = f"{filename}.pdf"
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            for line in isi_teks.split('\n'):
+                pdf.cell(200, 10, txt=line, ln=True)
+            pdf.output(nama_file_lengkap)
+            print(f"\n[V] SUKSES! File tersimpan sebagai: {nama_file_lengkap}")
+
+        # --- SIMPAN KE WORD ---
+        elif format_file == '3':
+            nama_file_lengkap = f"{filename}.docx"
+            doc = Document()
+            doc.add_heading(f'Jadwal Shalat {nama_kota.upper()}', 0)
+            doc.add_paragraph(f"Masehi : {data_shalat['tanggal']}")
+            doc.add_paragraph(f"Hijriah : {data_shalat['hijriah']}")
+            
+            table = doc.add_table(rows=1, cols=2)
+            hdr_cells = table.rows[0].cells
+            hdr_cells[0].text = 'Waktu Shalat'
+            hdr_cells[1].text = 'Jam'
+            
+            for k, v in data_shalat['jadwal'].items():
+                row_cells = table.add_row().cells
+                row_cells[0].text = k
+                row_cells[1].text = v
+                
+            doc.save(nama_file_lengkap)
+            print(f"\n[V] SUKSES! File tersimpan sebagai: {nama_file_lengkap}")
+            
+    except PermissionError:
+        print(f"\n[X] GAGAL MENYIMPAN! Pastikan file {nama_file_lengkap} sedang TIDAK DIBUKA di aplikasi lain (seperti MS Word / PDF Reader). Tutup dulu aplikasinya, lalu coba lagi.")
+    except Exception as e:
+        print(f"\n[X] Terjadi kesalahan saat menyimpan file: {e}")
+
+# ==========================================
+# 3. FUNGSI UTAMA (AMBIL API)
+# ==========================================
+def ambil_jadwal_shalat(kota, negara="Indonesia"):
+    url = "http://api.aladhan.com/v1/timingsByCity"
+    params = {'city': kota, 'country': negara, 'method': 20}
+    
+    print(f"\n🔄 Mengambil data untuk kota {kota}...")
+    
+    try:
+        respons = requests.get(url, params=params)
+        respons.raise_for_status()
+        res_data = respons.json()['data']
+        
+        jadwal_raw = res_data['timings']
+        waktu_sholat = {
+            'Imsak': 'Imsak', 'Fajr': 'Subuh', 'Sunrise': 'Terbit',
+            'Dhuhr': 'Dzuhur', 'Asr': 'Ashar', 'Maghrib': 'Maghrib', 'Isha': 'Isya'
+        }
+        
+        jadwal_bersih = {nama: jadwal_raw[kunci] for kunci, nama in waktu_sholat.items()}
+        
+        data_hasil = {
+            'kota': kota,
+            'tanggal': res_data['date']['gregorian']['date'],
+            'hijriah': f"{res_data['date']['hijri']['day']} {res_data['date']['hijri']['month']['en']} {res_data['date']['hijri']['year']}",
+            'jadwal': jadwal_bersih
+        }
+
+        # Tampilkan di layar Terminal
+        print("\n" + "="*45)
         print(f"🕌 JADWAL SHALAT: {data_hasil['kota'].upper()}")
         print(f"📅 Masehi  : {data_hasil['tanggal']}")
+        print(f"🌙 Hijriah : {data_hasil['hijriah']}")
         print("="*45)
         for k, v in jadwal_bersih.items():
             print(f" {k:<10} : {v}")
         print("="*45)
 
-        # Menu Simpan File
-        print("\nOpsi Simpan File:")
-        print("1. Simpan ke .txt")
-        print("2. Simpan ke .pdf")
-        print("3. Simpan ke .docx (Word)")
-        print("4. Tidak perlu simpan")
-        pilihan = input("Pilih (1-4): ")
+        # Menu Interaktif
+        print("\nIngin menyimpan jadwal ini ke dalam file?")
+        print(" [1] Simpan ke Teks (.txt)")
+        print(" [2] Simpan ke PDF (.pdf)")
+        print(" [3] Simpan ke Word (.docx)")
+        print(" [4] Tidak, kembali ke menu awal")
         
-        if pilihan in ['1', '2', '3']:
-            simpan_ke_file(data_hasil, pilihan)
+        while True:
+            pilihan = input("Pilih angka (1-4): ").strip()
+            if pilihan in ['1', '2', '3']:
+                simpan_ke_file(data_hasil, pilihan)
+                break
+            elif pilihan == '4':
+                print("\nOke, tidak disimpan.")
+                break
+            else:
+                print("Pilihan tidak valid, silakan masukkan angka 1, 2, 3, atau 4.")
 
-    except Exception as e:
-        print(f"\n[X] Terjadi kesalahan: {e}\n")
+    except requests.exceptions.RequestException:
+        print("\n[X] Gagal mengambil data! Pastikan internet menyala dan nama kota benar (contoh: Jakarta, Surabaya).")
 
+# ==========================================
+# 4. PROGRAM DIJALANKAN (START)
+# ==========================================
 if __name__ == "__main__":
-    print("\n" + "*"*45)
-    print("   PROGRAM JADWAL SHALAT + EKSPOR FILE   ")
-    print("*"*45)
+    print("\n" + "*"*50)
+    print("   🕌 PROGRAM PENGHITUNG WAKTU SHALAT PRO 🕌   ")
+    print("*"*50)
     
     while True:
-        input_kota = input("\nMasukkan nama kota (atau ketik 'keluar'): ").strip()
-        if input_kota.lower() == 'keluar': break
-        if input_kota: ambil_jadwal_shalat(input_kota)
+        input_kota = input("\n> Masukkan nama kota (atau ketik 'keluar' untuk stop): ").strip()
+        
+        if input_kota.lower() == 'keluar': 
+            print("\nTerima kasih telah menggunakan aplikasi ini! 🙏\n")
+            break
+        elif input_kota == "":
+            print("Nama kota tidak boleh kosong!")
+        else:
+            ambil_jadwal_shalat(input_kota) 
 </script>
 </body>
 </html>
